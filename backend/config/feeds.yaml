@@ -1,0 +1,74 @@
+# feeds.yaml - Configuration file for Feed Monitoring Framework
+
+feeds:
+  - name: "Customer Transactions"
+    source_table: "customer_transactions"
+    date_column: "transaction_date"
+    expected_time: "09:00"
+    tolerance_minutes: 60
+    weekend_expected: false
+    min_records: 1000
+    connection_string: "postgresql://user:pass@localhost/prod_db"
+    
+  - name: "Product Catalog"
+    source_table: "product_catalog"
+    date_column: "update_date"
+    expected_time: "06:00"
+    tolerance_minutes: 30
+    weekend_expected: true
+    min_records: 100
+    connection_string: "postgresql://user:pass@localhost/prod_db"
+    
+  - name: "Order Processing"
+    source_table: "orders"
+    date_column: "order_date"
+    expected_time: "10:30"
+    tolerance_minutes: 45
+    weekend_expected: false
+    min_records: 500
+    connection_string: "postgresql://user:pass@localhost/prod_db"
+    
+  - name: "Payment Reconciliation"
+    source_table: "payment_reconciliation"
+    date_column: "reconciliation_date"
+    expected_time: "23:00"
+    tolerance_minutes: 120
+    weekend_expected: false
+    min_records: 50
+    connection_string: "postgresql://user:pass@localhost/fin_db"
+    
+  - name: "Inventory Updates"
+    source_table: "inventory_updates"
+    date_column: "update_date"
+    expected_time: "03:00"
+    tolerance_minutes: 90
+    weekend_expected: true
+    min_records: 200
+    connection_string: "postgresql://user:pass@localhost/inv_db"
+
+# Global configuration
+global_settings:
+  check_interval_minutes: 10
+  retention_days: 365
+  alert_channels:
+    email:
+      enabled: true
+      smtp_server: "smtp.company.com"
+      smtp_port: 587
+      recipients: ["dataops@company.com", "alerts@company.com"]
+    slack:
+      enabled: false
+      webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+      channel: "#data-alerts"
+  
+  # Holiday calendar (feeds won't be expected on these dates)
+  holidays:
+    - "2024-01-01"  # New Year's Day
+    - "2024-07-04"  # Independence Day
+    - "2024-12-25"  # Christmas Day
+    
+  # Business hours for delayed status calculation
+  business_hours:
+    start: "06:00"
+    end: "20:00"
+    timezone: "UTC"
