@@ -7,28 +7,26 @@ const FeedMonitorDashboard = () => {
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [error, setError] = useState(null);
 
-  // Status color mapping to match expected design
+  // Status color mapping
   const getStatusColor = (status) => {
     switch (status) {
       case 'received': return 'bg-green-500';
       case 'delayed': return 'bg-yellow-500';
-      case 'missing': return 'bg-red-400';
+      case 'missing': return 'bg-red-500';
       case 'partial': return 'bg-orange-500';
       case 'failed': return 'bg-red-600';
-      default: return 'bg-gray-300';
+      default: return 'bg-gray-400';
     }
   };
 
-  // Status icons
   const getStatusIcon = (status) => {
-    const iconClass = "w-5 h-5 text-white";
     switch (status) {
-      case 'received': return <CheckCircle className={iconClass} />;
-      case 'delayed': return <Clock className={iconClass} />;
-      case 'missing': return <XCircle className={iconClass} />;
-      case 'partial': return <AlertTriangle className={iconClass} />;
-      case 'failed': return <XCircle className={iconClass} />;
-      default: return <Minus className={iconClass} />;
+      case 'received': return <CheckCircle className="w-3 h-3 text-white" />;
+      case 'delayed': return <Clock className="w-3 h-3 text-white" />;
+      case 'missing': return <XCircle className="w-3 h-3 text-white" />;
+      case 'partial': return <AlertTriangle className="w-3 h-3 text-white" />;
+      case 'failed': return <XCircle className="w-3 h-3 text-white" />;
+      default: return <Minus className="w-3 h-3 text-white" />;
     }
   };
 
@@ -37,7 +35,7 @@ const FeedMonitorDashboard = () => {
       setLoading(true);
       setError(null);
       
-      // Simulate API response with 14 days of data
+      // Simulate API response
       const mockData = [
         {
           feed_name: "Customer Transactions",
@@ -64,12 +62,12 @@ const FeedMonitorDashboard = () => {
     }
   };
 
-  // Generate mock data for 14 days
+  // Generate mock data for demonstration
   const generateMockDailyStatus = (feedName) => {
     const dailyStatus = {};
     const today = new Date();
     
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
@@ -90,7 +88,7 @@ const FeedMonitorDashboard = () => {
         status = 'delayed';
       }
       
-      // Weekend logic for Customer Transactions
+      // Weekend logic
       if (isWeekend && feedName === "Customer Transactions") {
         status = 'received';
         count = 0;
@@ -107,27 +105,31 @@ const FeedMonitorDashboard = () => {
     return dailyStatus;
   };
 
-  // Generate date headers for 14 days
+  // Generate date headers
   const generateDateHeaders = () => {
     const headers = [];
     const today = new Date();
     
-    for (let i = 13; i >= 0; i--) {
+    for (let i = 0; i < 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
       headers.push({
         date: date.toISOString().split('T')[0],
-        day: date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+        day: date.toLocaleDateString('en-US', { weekday: 'short' }),
         dayNum: date.getDate(),
         isWeekend: date.getDay() === 0 || date.getDay() === 6
       });
     }
     
-    return headers;
+    return headers.reverse();
   };
 
   const manualRefresh = async () => {
-    await fetchFeedsData();
+    try {
+      await fetchFeedsData();
+    } catch (err) {
+      setError('Failed to refresh data');
+    }
   };
 
   useEffect(() => {
@@ -152,160 +154,169 @@ const FeedMonitorDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 rounded-lg mb-6">
-        <div className="px-6 py-4">
-          <div className="flex justify-between items-center">
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Feed Monitor Dashboard</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-500">
                 Last updated: {lastUpdate.toLocaleString()}
               </p>
             </div>
-            <button
-              onClick={manualRefresh}
-              disabled={loading}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
+            <div className="flex items-center space-x-4">
+              {error && (
+                <div className="text-red-600 text-sm flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+              <button
+                onClick={manualRefresh}
+                disabled={loading}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Status Legend */}
-      <div className="bg-white rounded-lg shadow-sm mb-6 p-4">
-        <div className="flex items-center space-x-6">
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
-            <span className="text-sm text-gray-700">Received</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
-            <span className="text-sm text-gray-700">Delayed</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-orange-500 rounded mr-2"></div>
-            <span className="text-sm text-gray-700">Partial</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-red-400 rounded mr-2"></div>
-            <span className="text-sm text-gray-700">Missing</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-red-600 rounded mr-2"></div>
-            <span className="text-sm text-gray-700">Failed</span>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Legend */}
+        <div className="bg-white rounded-lg shadow mb-6 p-4">
+          <h3 className="text-lg font-semibold mb-3">Status Legend</h3>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center">
+              <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+              <span className="text-sm">Received</span>
+            </div>
+            <div className="flex items-center">
+              <Clock className="w-4 h-4 text-yellow-500 mr-2" />
+              <span className="text-sm">Delayed</span>
+            </div>
+            <div className="flex items-center">
+              <AlertTriangle className="w-4 h-4 text-orange-500 mr-2" />
+              <span className="text-sm">Partial</span>
+            </div>
+            <div className="flex items-center">
+              <XCircle className="w-4 h-4 text-red-500 mr-2" />
+              <span className="text-sm">Missing</span>
+            </div>
+            <div className="flex items-center">
+              <XCircle className="w-4 h-4 text-red-600 mr-2" />
+              <span className="text-sm">Failed</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Feed Status Grid */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b">
-                <th className="text-left py-3 px-4 font-medium text-gray-600 sticky left-0 bg-gray-50 z-10 min-w-[150px]">
-                  FEED NAME
-                </th>
-                {dateHeaders.map((header) => (
-                  <th
-                    key={header.date}
-                    className={`text-center py-3 px-2 font-medium text-xs min-w-[60px] ${
-                      header.isWeekend ? 'bg-gray-100 text-gray-400' : 'text-gray-600'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center">
-                      <span className="text-xs">{header.day}</span>
-                      <span className="text-sm font-bold">{header.dayNum}</span>
-                    </div>
+        {/* Feed Status Grid */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="sticky left-0 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r z-10">
+                    Feed Name
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {feedsData.map((feed, feedIndex) => (
-                <tr key={feed.feed_name} className="border-b hover:bg-gray-50">
-                  <td className="py-4 px-4 font-medium text-gray-900 sticky left-0 bg-white hover:bg-gray-50 z-10 border-r">
-                    {feed.feed_name}
-                  </td>
-                  {dateHeaders.map((header) => {
-                    const dayData = feed.daily_status[header.date];
-                    return (
-                      <td
-                        key={header.date}
-                        className="py-4 px-2 text-center"
-                        title={`${feed.feed_name} - ${header.date}\nStatus: ${dayData?.status || 'unknown'}\nRecords: ${dayData?.count || 0}`}
-                      >
-                        <div className="flex flex-col items-center">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            getStatusColor(dayData?.status || 'unknown')
-                          }`}>
-                            {getStatusIcon(dayData?.status || 'unknown')}
-                          </div>
-                          <div className="text-xs text-gray-600 mt-1 font-medium">
-                            {dayData?.count || 0}
-                          </div>
-                        </div>
-                      </td>
-                    );
-                  })}
+                  {dateHeaders.map((header) => (
+                    <th
+                      key={header.date}
+                      className={`px-2 py-3 text-center text-xs font-medium uppercase tracking-wider min-w-[50px] ${
+                        header.isWeekend ? 'bg-gray-100 text-gray-400' : 'text-gray-500'
+                      }`}
+                    >
+                      <div>
+                        <div>{header.day}</div>
+                        <div className="text-sm font-bold">{header.dayNum}</div>
+                      </div>
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {feedsData.map((feed, feedIndex) => (
+                  <tr key={feed.feed_name} className={feedIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className={`sticky left-0 px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r z-10 ${
+                      feedIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                    }`}>
+                      {feed.feed_name}
+                    </td>
+                    {dateHeaders.map((header) => {
+                      const dayData = feed.daily_status[header.date];
+                      const status = dayData?.status || 'unknown';
+                      const count = dayData?.count || 0;
+                      
+                      return (
+                        <td
+                          key={header.date}
+                          className="px-2 py-4 text-center"
+                          title={`${feed.feed_name} - ${header.date}: ${status} (${count} records)`}
+                        >
+                          <div className="flex flex-col items-center">
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${getStatusColor(status)}`}>
+                              {getStatusIcon(status)}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-1">
+                              {count}
+                            </div>
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      {/* Summary Stats */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-full">
-              <CheckCircle className="w-6 h-6 text-green-600" />
+        {/* Summary Stats */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <CheckCircle className="w-8 h-8 text-green-500 mr-3" />
+              <div>
+                <p className="text-sm text-gray-500">Feeds Healthy Today</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {feedsData.length > 0 ? 
+                    feedsData.filter(feed => {
+                      const today = new Date().toISOString().split('T')[0];
+                      return feed.daily_status[today]?.status === 'received';
+                    }).length : 0
+                  } / {feedsData.length}
+                </p>
+              </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-600">Feeds Healthy Today</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {feedsData.length > 0 ? 
-                  feedsData.filter(feed => {
-                    const today = new Date().toISOString().split('T')[0];
-                    return feed.daily_status[today]?.status === 'received';
-                  }).length : 0
-                } / {feedsData.length}
-              </p>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <Clock className="w-8 h-8 text-blue-500 mr-3" />
+              <div>
+                <p className="text-sm text-gray-500">Next Check In</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {Math.max(0, Math.floor((10 * 60 * 1000 - (Date.now() - lastUpdate.getTime())) / 60000))}m
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <Calendar className="w-8 h-8 text-purple-500 mr-3" />
+              <div>
+                <p className="text-sm text-gray-500">Monitoring Period</p>
+                <p className="text-2xl font-bold text-gray-900">30 Days</p>
+              </div>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Clock className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-600">Next Check In</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {Math.max(0, Math.floor((10 * 60 * 1000 - (Date.now() - lastUpdate.getTime())) / 60000))}m
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-purple-100 rounded-full">
-              <Calendar className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-600">Monitoring Period</p>
-              <p className="text-2xl font-bold text-gray-900">14 Days</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 };
